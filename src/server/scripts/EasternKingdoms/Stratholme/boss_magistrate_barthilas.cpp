@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2006-2009 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -16,134 +15,130 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ScriptData
-SDName: Boss_Magistrate_Barthilas
-SD%Complete: 70
-SDComment:
-SDCategory: Stratholme
-EndScriptData */
-
+#include "Map.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "stratholme.h"
 
-enum Spells
+enum BarthilasEvents
 {
-    SPELL_DRAININGBLOW      = 16793,
-    SPELL_CROWDPUMMEL       = 10887,
-    SPELL_MIGHTYBLOW        = 14099,
-    SPELL_FURIOUS_ANGER     = 16791
+    EVENT_DRAINING_BLOW = 1,
+    EVENT_CROWD_PUMMEL  = 2,
+    EVENT_MIGHTY_BLOW   = 3,
+    EVENT_FURIOUS_ANGER = 4
 };
 
-enum Models
+enum BarthilasModels
 {
-    MODEL_NORMAL            = 10433,
-    MODEL_HUMAN             = 3637
+    MODEL_NORMAL        = 10433,
+    MODEL_HUMAN         = 3637
 };
 
-class boss_magistrate_barthilas : public CreatureScript
+enum BarthilasSpells
 {
-public:
-    boss_magistrate_barthilas() : CreatureScript("boss_magistrate_barthilas") { }
+    SPELL_DRAININGBLOW  = 16793,
+    SPELL_CROWDPUMMEL   = 10887,
+    SPELL_MIGHTYBLOW    = 14099,
+    SPELL_FURIOUS_ANGER = 16791
+};
 
-    CreatureAI* GetAI(Creature* creature) const override
+struct boss_magistrate_barthilas : public BossAI
+{
+    boss_magistrate_barthilas(Creature* creature) : BossAI(creature, NPC_BARTHILAS) { }
+
+    uint8 AngerCount;
+
+    void Reset() override
     {
-        return GetStratholmeAI<boss_magistrate_barthilasAI>(creature);
+        AngerCount = 0;
+        
+        if (me->IsAlive())
+            me->SetDisplayId(MODEL_NORMAL);
+        else
+            me->SetDisplayId(MODEL_HUMAN);
+
+        BossAI::Reset();
     }
 
-    struct boss_magistrate_barthilasAI : public ScriptedAI
+    void ReceiveEmote(Player* player, uint32 emote) override
     {
-        boss_magistrate_barthilasAI(Creature* creature) : ScriptedAI(creature)
+        if (emote == 1000)
+            Talk(YELL_MAGISTRATE_BARTHILAS);
+
+        BossAI::ReceiveEmote(player, emote);
+    }
+
+    void JustEngagedWith(Unit* who) override
+    {
+        events.ScheduleEvent(EVENT_DRAINING_BLOW, 20s);
+        events.ScheduleEvent(EVENT_CROWD_PUMMEL, 15s);
+        events.ScheduleEvent(EVENT_MIGHTY_BLOW, 10s);
+        events.ScheduleEvent(EVENT_FURIOUS_ANGER, 5s);
+
+        BossAI::JustEngagedWith(who);
+    }
+
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (who->GetTypeId() == TYPEID_PLAYER && me->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE) && me->IsWithinDistInMap(who, 10.0f))
+            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+        BossAI::MoveInLineOfSight(who);
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        me->SetDisplayId(MODEL_HUMAN);
+
+        BossAI::JustDied(killer);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (!UpdateVictim())
+            return;
+
+        events.Update(diff);
+
+        if (me->HasUnitState(UNIT_STATE_CASTING))
+            return;
+
+        while (uint32 eventId = events.ExecuteEvent())
         {
-            Initialize();
-        }
+            switch (eventId)
+            {
+                case EVENT_DRAINING_BLOW:
+                    DoCastVictim(SPELL_DRAININGBLOW);
+                    events.Repeat(15s);
+                    break;
+                case EVENT_CROWD_PUMMEL:
+                    DoCastVictim(SPELL_CROWDPUMMEL);
+                    events.Repeat(15s);
+                    break;
+                case EVENT_MIGHTY_BLOW:
+                    DoCastVictim(SPELL_MIGHTYBLOW);
+                    events.Repeat(20s);
+                    break;
+                case EVENT_FURIOUS_ANGER:
+                    if (AngerCount > 25)
+                        break;
+                    ++AngerCount;
+                    DoCastSelf(SPELL_FURIOUS_ANGER);
+                    events.Repeat(4s);
+                    break;
+                default:
+                    break;              
+            }
 
-        void Initialize()
-        {
-            DrainingBlow_Timer = 20000;
-            CrowdPummel_Timer = 15000;
-            MightyBlow_Timer = 10000;
-            FuriousAnger_Timer = 5000;
-            AngerCount = 0;
-        }
-
-        uint32 DrainingBlow_Timer;
-        uint32 CrowdPummel_Timer;
-        uint32 MightyBlow_Timer;
-        uint32 FuriousAnger_Timer;
-        uint32 AngerCount;
-
-        void Reset() override
-        {
-            Initialize();
-
-            if (me->IsAlive())
-                me->SetDisplayId(MODEL_NORMAL);
-            else
-                me->SetDisplayId(MODEL_HUMAN);
-        }
-
-        void MoveInLineOfSight(Unit* who) override
-
-        {
-            //nothing to see here yet
-
-            ScriptedAI::MoveInLineOfSight(who);
-        }
-
-        void JustDied(Unit* /*killer*/) override
-        {
-            me->SetDisplayId(MODEL_HUMAN);
-        }
-
-        void JustEngagedWith(Unit* /*who*/) override
-        {
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            //Return since we have no target
-            if (!UpdateVictim())
+            if (me->HasUnitState(UNIT_STATE_CASTING))
                 return;
-
-            if (FuriousAnger_Timer <= diff)
-            {
-                FuriousAnger_Timer = 4000;
-                if (AngerCount > 25)
-                    return;
-
-                ++AngerCount;
-                DoCast(me, SPELL_FURIOUS_ANGER, false);
-            } else FuriousAnger_Timer -= diff;
-
-            //DrainingBlow
-            if (DrainingBlow_Timer <= diff)
-            {
-                DoCastVictim(SPELL_DRAININGBLOW);
-                DrainingBlow_Timer = 15000;
-            } else DrainingBlow_Timer -= diff;
-
-            //CrowdPummel
-            if (CrowdPummel_Timer <= diff)
-            {
-                DoCastVictim(SPELL_CROWDPUMMEL);
-                CrowdPummel_Timer = 15000;
-            } else CrowdPummel_Timer -= diff;
-
-            //MightyBlow
-            if (MightyBlow_Timer <= diff)
-            {
-                DoCastVictim(SPELL_MIGHTYBLOW);
-                MightyBlow_Timer = 20000;
-            } else MightyBlow_Timer -= diff;
-
-            DoMeleeAttackIfReady();
         }
-    };
 
+        DoMeleeAttackIfReady();
+    }
 };
 
 void AddSC_boss_magistrate_barthilas()
 {
-    new boss_magistrate_barthilas();
+    RegisterStratholmeCreatureAI(boss_magistrate_barthilas);
 }

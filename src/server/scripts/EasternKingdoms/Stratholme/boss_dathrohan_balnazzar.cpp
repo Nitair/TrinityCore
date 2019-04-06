@@ -47,7 +47,6 @@ enum Spells
 
 enum Creatures
 {
-    NPC_DATHROHAN                   = 10812,
     NPC_BALNAZZAR                   = 10813,
     NPC_ZOMBIE                      = 10698                 //probably incorrect
 };

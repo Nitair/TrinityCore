@@ -70,7 +70,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override
         {
-            instance->SetData(TYPE_PALLID, IN_PROGRESS);
+            instance->SetData(TYPE_PALLID, DONE);
         }
 
         void UpdateAI(uint32 diff) override

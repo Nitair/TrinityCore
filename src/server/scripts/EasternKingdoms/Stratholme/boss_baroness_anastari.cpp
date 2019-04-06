@@ -70,7 +70,7 @@ struct boss_baroness_anastari : public BossAI
     {
         // needed until crystals implemented,
         // see line 305 instance_stratholme.cpp
-        instance->SetData(TYPE_BARONESS, IN_PROGRESS);
+        instance->SetData(TYPE_BARONESS, DONE);
     }
 
     void UpdateAI(uint32 diff) override

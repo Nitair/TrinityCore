@@ -126,8 +126,10 @@ public:
                     if (!RaiseDead)
                     {
                         DoCastSelf(SPELL_RAISE_DEAD);
+
                         for (uint32 const& summonSkeletons : RaiseDeadSpells)
                             DoCastSelf(summonSkeletons, true);
+
                         RaiseDead = true;
                         Talk(EMOTE_RAISE_DEAD);
                     }

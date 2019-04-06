@@ -35,11 +35,6 @@ enum Spells
     SPELL_KNOCKOUT          = 17307
 };
 
-enum CreatureId
-{
-    NPC_MINDLESS_UNDEAD     = 11030
-};
-
 class boss_ramstein_the_gorger : public CreatureScript
 {
 public:

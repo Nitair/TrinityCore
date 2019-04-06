@@ -80,7 +80,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override
         {
-            instance->SetData(TYPE_NERUB, IN_PROGRESS);
+            instance->SetData(TYPE_NERUB, DONE);
         }
 
         void RaiseUndeadScarab(Unit* victim)
