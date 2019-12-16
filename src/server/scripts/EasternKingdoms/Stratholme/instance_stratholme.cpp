@@ -197,6 +197,8 @@ class instance_stratholme : public InstanceMapScript
                     case NPC_DATHROHAN:
                         DathrohanGUID = creature->GetGUID();
                         break;
+                    default:
+                        break;
                 }
 
                 PlaceEcarlateGUID.insert(creature->GetGUID());
@@ -381,6 +383,8 @@ class instance_stratholme : public InstanceMapScript
                         return QuestplayerGUID;
                     case NPC_DATHROHAN:
                         return DathrohanGUID;
+                    default:
+                        break;
                 }
                 return InstanceScript::GetGuidData(data);
             }
@@ -400,6 +404,8 @@ class instance_stratholme : public InstanceMapScript
                                 if (Player* player = instance->GetPlayer(GetGuidData(DATA_QUESTPLAYER)))
                                 {
                                     player->SummonCreature(NPC_AURIUS_2, 4045.71f, -3357.38f, 115.10f, 2.08f, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1800000);
+
+                                    //! Not needed in future
                                     SetData(TYPE_EVENT_AURIUS, IN_PROGRESS);
                                 }
                             }
@@ -498,8 +504,8 @@ class instance_stratholme : public InstanceMapScript
                                 {
                                     if (TempSummon* BossRamstein = BossRivendare->SummonCreature(NPC_RAMSTEIN, 4032.35f, -3380.567f, 119.739571f, 4.7614f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 1800000))
                                     {
-                                        BossRamstein->GetMotionMaster()->MovePoint(0, 4033.009f, -3404.3293f, 115.3554f);
-                                        BossRamstein->SetHomePosition(4033.009f, -3404.3293f, 115.3554f, 4.788970f);
+                                        BossRamstein->GetMotionMaster()->MovePoint(0, 4033.01f, -3404.33f, 115.36f);
+                                        BossRamstein->SetHomePosition(4033.01f, -3404.33f, 115.36f, 4.788970f);
                                         TC_LOG_DEBUG("scripts", "Instance Stratholme: Ramstein spawned.");
                                     }
                                 }
@@ -536,6 +542,8 @@ class instance_stratholme : public InstanceMapScript
                     case DATA_QUESTPLAYER:
                         QuestplayerGUID = data;
                         break;
+                    default:
+                        break;
                 }
             }
 
@@ -563,19 +571,19 @@ class instance_stratholme : public InstanceMapScript
                         }
                         if (data == DONE)
                         {
-                            if (Creature* ysida = instance->GetCreature(YsidaGUID))
+                            if (Creature* Ysida = instance->GetCreature(YsidaGUID))
                             {
                                 if (GameObject* cage = instance->GetGameObject(YsidaCageGUID))
                                     cage->UseDoorOrButton();
 
                                 float x, y, z;
                                 //! This spell handles the Dead man's plea quest completion
-                                ysida->CastSpell(nullptr, SPELL_YSIDA_SAVED, true);
-                                ysida->SetWalk(true);
-                                ysida->AI()->Talk(SAY_BARON_RUN_SUCCESS);
-                                ysida->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-                                ysida->GetClosePoint(x, y, z, ysida->GetObjectScale() / 3, 4.0f);
-                                ysida->GetMotionMaster()->MovePoint(1, x, y, z);
+                                Ysida->CastSpell(nullptr, SPELL_YSIDA_SAVED, true);
+                                Ysida->SetWalk(true);
+                                Ysida->AI()->Talk(SAY_BARON_RUN_SUCCESS);
+                                Ysida->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                                Ysida->GetClosePoint(x, y, z, Ysida->GetObjectScale() / 3, 4.0f);
+                                Ysida->GetMotionMaster()->MovePoint(1, x, y, z);
 
                                 Map::PlayerList const& players = instance->GetPlayers();
                                 for (auto const& i : players)
@@ -587,7 +595,7 @@ class instance_stratholme : public InstanceMapScript
 
                                         //! im not quite sure what this one is supposed to do
                                         //! this is server-side spell
-                                        player->CastSpell(ysida, SPELL_YSIDA_CREDIT_EFFECT, true);
+                                        player->CastSpell(Ysida, SPELL_YSIDA_CREDIT_EFFECT, true);
                                     }
                                 }
                             }
@@ -690,7 +698,7 @@ class instance_stratholme : public InstanceMapScript
                     {
                         case EVENT_BARON_RUN:
                             // If Ysida does die somehow (GM?)
-                            if (!instance->GetCreature(YsidaGUID))
+                            if (!instance->GetCreature(YsidaGUID)->IsAlive())
                                 SetData(TYPE_BARON_RUN, FAIL);
 
                             switch (GetData(TYPE_BARON_RUN))
@@ -781,6 +789,8 @@ class instance_stratholme : public InstanceMapScript
                                     }
                                     events.CancelEvent(EVENT_BARON_RUN);
                                     break;
+                                default:
+                                    break;
                             }
                             TC_LOG_DEBUG("scripts", "Instance Stratholme: Baron run event reached end. Event has state %u.", GetData(TYPE_BARON_RUN));
                             break;
@@ -812,6 +822,8 @@ class instance_stratholme : public InstanceMapScript
                                     TC_LOG_DEBUG("scripts", "Instance Stratholme: Black guard sentries spawned. Opening gates to baron.");
                                 }
                             }
+                            break;
+                        default:
                             break;
                     }
                 }

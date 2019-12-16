@@ -55,22 +55,22 @@ struct boss_baroness_anastari : public BossAI
         instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_POSSESSED);
         me->RemoveAurasDueToSpell(SPELL_POSSESS_INV);
 
-        events.Reset();
+        BossAI::Reset();
     }
 
-    void JustEngagedWith(Unit* /*who*/) override
+    void JustEngagedWith(Unit* who) override
     {
         events.ScheduleEvent(EVENT_SPELL_BANSHEEWAIL, 1s);
         events.ScheduleEvent(EVENT_SPELL_BANSHEECURSE, 11s);
         events.ScheduleEvent(EVENT_SPELL_SILENCE, 13s);
         events.ScheduleEvent(EVENT_SPELL_POSSESS, 20s, 30s);
+
+        BossAI::JustEngagedWith(who);
     }
 
-    void JustDied(Unit* /*killer*/) override
+    void JustDied(Unit* killer) override
     {
-        // needed until crystals implemented,
-        // see line 305 instance_stratholme.cpp
-        instance->SetData(TYPE_BARONESS, DONE);
+        BossAI::JustDied(killer);
     }
 
     void UpdateAI(uint32 diff) override

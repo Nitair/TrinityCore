@@ -35,8 +35,9 @@ enum StratholmeTypes
     TYPE_EVENT_AURIUS       = 7,
     TYPE_RAMSTEIN_EVENT     = 8,
     TYPE_POSTMASTER         = 9,
-    MAX_ENCOUNTER           = 10,
-    TYPE_CRYSTAL_DIED       = 11
+    TYPE_CRYSTAL_DIED       = 10,
+
+    MAX_ENCOUNTER           = 11
 };
 
 enum StratholmeData
@@ -165,18 +166,14 @@ enum StratholmeYsidaTexts
 enum StratholmeRamstein
 {
     YELL_RAMSTEIN_INFIGHT_1     = 0,  // Ramstein hunger for flesh!
-    YELL_RAMSTEIN_INFIGHT_2     = 1,  // $R flesh... must feed!
+    YELL_RAMSTEIN_INFIGHT_2     = 1   // $R flesh... must feed!
 };
 
 enum StratholmeTexts
 {
     YELL_MAGISTRATE_BARTHILAS   = 0,  // Intruders at the Service Gate! Lord Rivendare must be warned!
-    
-    YELL_EYE_OF_NAXXRAMAS       = 2,  // The living are here!                        
-
-    
+    YELL_EYE_OF_NAXXRAMAS       = 2,  // The living are here!
     YELL_BLACK_GUARD_SPAWN      = 6,  // ???
-
     // Postmaster Malown
     YELL_POSTMASTER_START       = 8, // Here comes the postmaster!
     YELL_POSTMASTER_INFIGHT     = 9, // Prepare to be Malowned!
